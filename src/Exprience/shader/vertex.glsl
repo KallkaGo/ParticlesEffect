@@ -21,5 +21,5 @@ void main(){
   vec4 projectedPositon = projectionMatrix * viewPosition;
   gl_Position =projectedPositon;
   gl_PointSize = uSize;
-  gl_PointSize *= 100./-viewPosition.z;
+  gl_PointSize *= 1./-viewPosition.z;
 }
