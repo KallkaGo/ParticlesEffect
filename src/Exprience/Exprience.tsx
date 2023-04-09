@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
-import { OrbitControls } from '@react-three/drei'
+import { OrbitControls, useGLTF } from '@react-three/drei'
 import Particles from '../utils/particles'
 import { button, useControls } from 'leva'
 import { useEffect, useRef } from 'react'
@@ -10,7 +10,7 @@ import FragmentShader from './shader/fragment.glsl'
 
 
 
-const pointCount = 10000
+const pointCount = 100000
 
 
 
@@ -20,7 +20,19 @@ export default function Exprience() {
   const _ref = useRef<THREE.BufferAttribute>(null)
   const _toref = useRef<THREE.BufferAttribute>(null)
   const _speedref = useRef<THREE.BufferAttribute>(null)
-  const particles = new Particles()
+  const _colorref = useRef<THREE.BufferAttribute>(null)
+  const _tocolorref = useRef<THREE.BufferAttribute>(null)
+  const particles = new Particles(pointCount)
+
+  const model = useGLTF('/model/particle.glb')
+  const wall = model.scene.getObjectByName('Wall') as THREE.Mesh
+  const people = model.scene.getObjectByName('people') as THREE.Mesh
+  const honeyComb = model.scene.getObjectByName('HoneyComb') as THREE.Mesh
+  const worm_Gear = model.scene.getObjectByName('Worm_Gear') as THREE.Mesh
+
+  if (!wall || !people! || !honeyComb || !worm_Gear) {
+    throw new Error('模型加载出错')
+  }
 
   useControls({
     size: {
@@ -44,14 +56,14 @@ export default function Exprience() {
       }
     },
     toggle: button(() => {
-      setGeometry(new THREE.SphereGeometry(5,64,64))
+      setGeometry(people.geometry, new THREE.Color('#51f'))
       materialRef.current!.uniforms.progress.value = 0
     })
   })
 
 
   useEffect(() => {
-    setGeometry(new THREE.BoxGeometry(10, 10, 10, 20, 20, 20))
+    setGeometry(wall.geometry.translate(0,-5,0), new THREE.Color('#55ff00'))
   }, [])
 
 
@@ -62,15 +74,18 @@ export default function Exprience() {
     }
   })
 
-  const setGeometry = (geometry: THREE.BufferGeometry) => {
-    const { position, toposition } = particles.to(geometry)
+  const setGeometry = (geometry: THREE.BufferGeometry, color: THREE.Color) => {
+    const { position, toposition } = particles.to(geometry, color)
     _ref.current!.array = position
     _toref.current!.array = toposition
     _speedref.current!.array = particles.speed
+    _colorref.current!.array = particles.color
+    _tocolorref.current!.array = particles.tocolor
     _ref.current!.needsUpdate = true
     _toref.current!.needsUpdate = true
     _speedref.current!.needsUpdate = true
-  
+    _colorref.current!.needsUpdate = true
+    _tocolorref.current!.needsUpdate = true
   }
 
 
@@ -80,8 +95,9 @@ export default function Exprience() {
       <OrbitControls />
       <directionalLight position={[1, 2, 3]} />
       <ambientLight intensity={0.5} />
+      <axesHelper scale={10} ></axesHelper>
       <points>
-        <bufferGeometry   >
+        <bufferGeometry >
           <bufferAttribute
             ref={_ref}
             attach="attributes-position"
@@ -100,7 +116,18 @@ export default function Exprience() {
             count={pointCount}
             itemSize={1}
           />
-
+          <bufferAttribute
+            ref={_colorref}
+            attach='attributes-color'
+            count={pointCount}
+            itemSize={3}
+          />
+          <bufferAttribute
+            ref={_tocolorref}
+            attach='attributes-tocolor'
+            count={pointCount}
+            itemSize={3}
+          />
         </bufferGeometry>
         <shaderMaterial
           depthWrite={false}
