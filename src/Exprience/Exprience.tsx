@@ -26,13 +26,79 @@ export default function Exprience() {
 
   const model = useGLTF('/model/particle.glb')
   const wall = model.scene.getObjectByName('Wall') as THREE.Mesh
+
+
   const people = model.scene.getObjectByName('people') as THREE.Mesh
   const honeyComb = model.scene.getObjectByName('HoneyComb') as THREE.Mesh
   const worm_Gear = model.scene.getObjectByName('Worm_Gear') as THREE.Mesh
 
+
+  const model2 = useGLTF('/model/dice2.glb')
+
+  const model3 = useGLTF('/model/houzi.glb')
+
+  const monkey = model3.scene.getObjectByName('猴头') as THREE.Mesh
+
+
+
+  const dice = model2.scene.getObjectByName('frame') as THREE.Mesh
+
+
+
   if (!wall || !people! || !honeyComb || !worm_Gear) {
     throw new Error('模型加载出错')
   }
+
+  const list = [
+    {
+      geometry: wall.geometry,
+      color: new THREE.Color('#55ff00')
+    },
+    {
+      geometry: dice.geometry.scale(10, 10, 10),
+      color: new THREE.Color('red')
+    },
+    {
+      geometry: monkey.geometry.scale(10,10,10),
+      color: new THREE.Color('pink')
+    },
+    {
+      geometry: worm_Gear.geometry,
+      color: new THREE.Color('yellow')
+    }
+  ]
+
+  list[-1] = {
+    geometry: new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(particles.initPosition, 3)),
+    color: new THREE.Color('black')
+  }
+
+
+  document.body.style.height = window.innerHeight * (list.length + 1) - 1 + 'px'
+
+  let current = 0
+
+  const onScroll = () => {
+    const scrollHeight = window.scrollY
+    const precent = scrollHeight / innerHeight
+    const index = Math.floor(precent)
+    if (current !== index) {
+      if (current < index) {
+        transformGeometry(list[current], list[index])
+      } else {
+        /*
+        因为在顶点着色器中通过 toposition - position 来求顶点的差值 最后乘以progress让粒子渐变
+        从下往上滚动时，progress从1逐渐趋近于0  所以需要把要变换的Geometry放到 transformGeometry 的from参数上 
+        */
+        transformGeometry(list[index - 1], list[current - 1])
+      }
+      current = index
+    }
+    setPercent(precent - index)
+  }
+
+  document.addEventListener('scroll', onScroll)
+
 
   useControls({
     size: {
@@ -45,34 +111,30 @@ export default function Exprience() {
         materialRef.current!.uniforms.uSize.value = v
       }
     },
-    progress: {
-      value: 0,
-      min: 0,
-      max: 1,
-      step: 0.01,
-      onChange: (v) => {
+    // progress: {
+    //   value: 0,
+    //   min: 0,
+    //   max: 1,
+    //   step: 0.01,
+    //   onChange: (v) => {
 
-        materialRef.current!.uniforms.progress.value = v
-      }
-    },
-    toggle: button(() => {
-      setGeometry(people.geometry, new THREE.Color('#51f'))
-      materialRef.current!.uniforms.progress.value = 0
-    })
+    //     materialRef.current!.uniforms.progress.value = v
+    //   }
+    // },
+    // toggle: button(() => {
+    //   setGeometry(monkey.geometry, new THREE.Color('#51f'))
+    //   materialRef.current!.uniforms.progress.value = 0
+    // })
   })
 
 
   useEffect(() => {
-    setGeometry(wall.geometry.translate(0,-5,0), new THREE.Color('#55ff00'))
+    setGeometry(list[0].geometry, list[0].color),
+
+      () => {
+        document.removeEventListener('scroll', onScroll)
+      }
   }, [])
-
-
-  useFrame(() => {
-    if (materialRef.current) {
-      materialRef.current!.uniforms.progress.value += 0.01
-      if (materialRef.current!.uniforms.progress.value > 1) materialRef.current!.uniforms.progress.value = 1
-    }
-  })
 
   const setGeometry = (geometry: THREE.BufferGeometry, color: THREE.Color) => {
     const { position, toposition } = particles.to(geometry, color)
@@ -88,14 +150,33 @@ export default function Exprience() {
     _tocolorref.current!.needsUpdate = true
   }
 
+  const transformGeometry = (from: any, to: any) => {
+    const { position, toposition } = particles.transform(from, to)
+    _ref.current!.array = position
+    _toref.current!.array = toposition
+    _speedref.current!.array = particles.speed
+    _colorref.current!.array = particles.color
+    _tocolorref.current!.array = particles.tocolor
+    _ref.current!.needsUpdate = true
+    _toref.current!.needsUpdate = true
+    _speedref.current!.needsUpdate = true
+    _colorref.current!.needsUpdate = true
+    _tocolorref.current!.needsUpdate = true
+  }
+
+
+  const setPercent = (value: number) => {
+    materialRef.current!.uniforms.progress.value = value
+  }
+
 
 
   return (
     <>
-      <OrbitControls />
+      <OrbitControls enableZoom={false} />
       <directionalLight position={[1, 2, 3]} />
       <ambientLight intensity={0.5} />
-      <axesHelper scale={10} ></axesHelper>
+      {/* <axesHelper  ></axesHelper> */}
       <points>
         <bufferGeometry >
           <bufferAttribute
