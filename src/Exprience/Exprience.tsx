@@ -37,13 +37,13 @@ export default function Exprience() {
 
   const modelMonkeyHead = useGLTF('/model/houzi.glb')
 
-  const model4 = useGLTF('/model/keqing.glb').scene.children[2].children
+ 
 
-
-
+  /* 合并模型几何体 */
   const mergeGeometry = (group: THREE.Mesh[]) => {
     let geometryArray: THREE.BufferGeometry[] = []
     group.map((mesh) => {
+      /* 相对坐标转换成世界坐标 */
       let matrixWorldGeometry = mesh.geometry.clone().applyMatrix4(mesh.matrixWorld)
       geometryArray.push(matrixWorldGeometry)
     })
@@ -52,7 +52,7 @@ export default function Exprience() {
     return mergedGeometries
   }
 
-  const keqing = mergeGeometry(model4 as THREE.Mesh[])
+
 
   const monkey = modelMonkeyHead.scene.getObjectByName('猴头') as THREE.Mesh
 
@@ -62,15 +62,11 @@ export default function Exprience() {
 
 
 
-  if (!wall || !people! || !honeyComb || !worm_Gear || !keqing) {
+  if (!wall || !people! || !honeyComb || !worm_Gear) {
     throw new Error('模型加载出错')
   }
 
   const list = [
-    {
-      geometry: keqing.scale(10, 10, 10),
-      color: [new THREE.Color('blue'), new THREE.Color('#55ffff')]
-    },
     {
       geometry: wall.geometry,
       color: [new THREE.Color('#55ff00'), new THREE.Color('#55ffff')]
@@ -93,7 +89,6 @@ export default function Exprience() {
     geometry: new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(particles.initPosition, 3)),
     color: [new THREE.Color('black'), new THREE.Color('black')]
   }
-
 
   document.body.style.height = window.innerHeight * (list.length + 1) - 1 + 'px'
 
