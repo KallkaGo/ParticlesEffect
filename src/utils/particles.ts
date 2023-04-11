@@ -3,7 +3,7 @@ import * as THREE from 'three'
 
 interface ITransform {
   geometry: THREE.BufferGeometry;
-  color: THREE.Color;
+  color: THREE.Color[];
 }
 
 export default class Particles {
@@ -34,8 +34,8 @@ export default class Particles {
 
 
       this.initPosition[i3] = this.toPosition[i3]
-      this.initPosition[i3+1] = this.toPosition[i3+1]
-      this.initPosition[i3+2] = this.toPosition[i3+2]
+      this.initPosition[i3 + 1] = this.toPosition[i3 + 1]
+      this.initPosition[i3 + 2] = this.toPosition[i3 + 2]
 
       this.tocolor[i3] = color['r']
       this.tocolor[i3 + 1] = color['g']
@@ -49,6 +49,26 @@ export default class Particles {
   transform(from: ITransform, to: ITransform) {
     const fromPosition = (<THREE.BufferAttribute>(from.geometry.getAttribute('position')))
     const toPosition = (<THREE.BufferAttribute>(to.geometry.getAttribute('position')))
+
+    from.geometry.computeBoundingBox()
+    to.geometry.computeBoundingBox()
+
+    const { min: minfrom, max: maxfrom } = from.geometry.boundingBox!;
+    const { min: minto, max: maxto } = to.geometry.boundingBox!;
+
+
+    const formdisColor = new THREE.Color()
+    const todisColor = new THREE.Color()
+
+    formdisColor.r = from.color[1].r - from.color[0].r
+    formdisColor.g = from.color[1].g - from.color[0].g
+    formdisColor.b = from.color[1].b - from.color[0].b
+
+    todisColor.r = to.color[1].r - to.color[0].r
+    todisColor.g = to.color[1].g - to.color[0].g
+    todisColor.b = to.color[1].b - to.color[0].b
+
+
 
     let fromIndex = 0
     let toIndex = 0
@@ -69,14 +89,18 @@ export default class Particles {
       this.toPosition[i3 + 1] = toPosition.array[toIndex3 + 1]
       this.toPosition[i3 + 2] = toPosition.array[toIndex3 + 2]
 
+      const fromPercent = (this.position[i3] - minfrom.x) / (maxfrom.x - minfrom.x)
 
-      this.color[i3] = from.color['r']
-      this.color[i3 + 1] = from.color['g']
-      this.color[i3 + 2] = from.color['b']
+      const toPercent = (this.toPosition[i3] - minto.x) / (maxto.x - minto.x)
 
-      this.tocolor[i3] = to.color['r']
-      this.tocolor[i3 + 1] = to.color['g']
-      this.tocolor[i3 + 2] = to.color['b']
+
+      this.color[i3] = from.color[0].r + formdisColor.r * fromPercent
+      this.color[i3 + 1] = from.color[0].g + formdisColor.g * fromPercent
+      this.color[i3 + 2] = from.color[0].b + formdisColor.b * fromPercent
+
+      this.tocolor[i3] = to.color[0]['r'] + todisColor.r * toPercent
+      this.tocolor[i3 + 1] = to.color[0]['g'] + todisColor.g * toPercent
+      this.tocolor[i3 + 2] = to.color[0]['b'] + todisColor.b * toPercent
 
       this.speed[index] = 0.4 + Math.random() * 0.3
 
@@ -91,8 +115,18 @@ export default class Particles {
   }
 
 
-  to(geometry: any, color: THREE.Color) {
+  to(geometry: THREE.BufferGeometry, color: THREE.Color[]) {
     const { array, count } = (<THREE.BufferAttribute>(geometry.getAttribute('position')))
+
+    geometry.computeBoundingBox()
+
+    const { min, max } = geometry.boundingBox!;
+
+    const disColor = new THREE.Color()
+    disColor.r = color[1].r - color[0].r
+    disColor.g = color[1].g - color[0].g
+    disColor.b = color[1].b - color[0].b
+
     let targetIndex = 0
     for (let i = 0; i < this.count; i++) {
       const i3 = i * 3
@@ -111,9 +145,14 @@ export default class Particles {
       this.color[i3 + 1] = this.tocolor[i3 + 1]
       this.color[i3 + 2] = this.tocolor[i3 + 2]
 
-      this.tocolor[i3] = color['r']
-      this.tocolor[i3 + 1] = color['g']
-      this.tocolor[i3 + 2] = color['b']
+
+      // 根据下一个模型的位置的x计算百分比
+      const percent = (this.toPosition[i3] - min.x) / (max.x - min.x)
+
+
+      this.tocolor[i3] = color[0].r + disColor.r * percent
+      this.tocolor[i3 + 1] = color[0].g + disColor.g * percent
+      this.tocolor[i3 + 2] = color[0].b + disColor.b * percent
 
       this.speed[i] = 0.4 + Math.random() * 0.3
 

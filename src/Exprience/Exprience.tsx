@@ -37,6 +37,8 @@ export default function Exprience() {
 
   const model3 = useGLTF('/model/houzi.glb')
 
+ 
+
   const monkey = model3.scene.getObjectByName('猴头') as THREE.Mesh
 
 
@@ -52,25 +54,25 @@ export default function Exprience() {
   const list = [
     {
       geometry: wall.geometry,
-      color: new THREE.Color('#55ff00')
+      color: [new THREE.Color('#55ff00'), new THREE.Color('#55ffff')]
     },
     {
       geometry: dice.geometry.scale(10, 10, 10),
-      color: new THREE.Color('red')
+      color: [new THREE.Color('red'), new THREE.Color('blue')]
     },
     {
-      geometry: monkey.geometry.scale(10,10,10),
-      color: new THREE.Color('pink')
+      geometry: monkey.geometry.scale(10, 10, 10),
+      color: [new THREE.Color('pink'), new THREE.Color('purple')]
     },
     {
       geometry: worm_Gear.geometry,
-      color: new THREE.Color('yellow')
+      color: [new THREE.Color('yellow'), new THREE.Color('white')]
     }
   ]
 
   list[-1] = {
     geometry: new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(particles.initPosition, 3)),
-    color: new THREE.Color('black')
+    color: [new THREE.Color('black'), new THREE.Color('black')]
   }
 
 
@@ -85,6 +87,7 @@ export default function Exprience() {
     if (current !== index) {
       if (current < index) {
         transformGeometry(list[current], list[index])
+        // setGeometry(list[index].geometry, list[index].color)
       } else {
         /*
         因为在顶点着色器中通过 toposition - position 来求顶点的差值 最后乘以progress让粒子渐变
@@ -136,7 +139,7 @@ export default function Exprience() {
       }
   }, [])
 
-  const setGeometry = (geometry: THREE.BufferGeometry, color: THREE.Color) => {
+  const setGeometry = (geometry: THREE.BufferGeometry, color: THREE.Color[]) => {
     const { position, toposition } = particles.to(geometry, color)
     _ref.current!.array = position
     _toref.current!.array = toposition

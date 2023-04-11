@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "depoly":"vercel --prod"
   },
   "dependencies": {
     "@react-three/drei": "9.50",
@@ -15,6 +16,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "three": "^0.148.0",
+    "vercel": "^28.18.4",
     "vite-plugin-glsl": "^1.1.2"
   },
   "devDependencies": {
