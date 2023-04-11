@@ -89,9 +89,9 @@ export default class Particles {
       this.toPosition[i3 + 1] = toPosition.array[toIndex3 + 1]
       this.toPosition[i3 + 2] = toPosition.array[toIndex3 + 2]
 
-      const fromPercent = (this.position[i3] - minfrom.x) / (maxfrom.x - minfrom.x)
+      const fromPercent = (this.position[i3+1] - minfrom.y) / (maxfrom.y - minfrom.y)
 
-      const toPercent = (this.toPosition[i3] - minto.x) / (maxto.x - minto.x)
+      const toPercent = (this.toPosition[i3+1] - minto.y) / (maxto.y - minto.y)
 
 
       this.color[i3] = from.color[0].r + formdisColor.r * fromPercent
@@ -147,7 +147,7 @@ export default class Particles {
 
 
       // 根据下一个模型的位置的x计算百分比
-      const percent = (this.toPosition[i3] - min.x) / (max.x - min.x)
+      const percent = (this.toPosition[i3+1] - min.y) / (max.y - min.y)
 
 
       this.tocolor[i3] = color[0].r + disColor.r * percent

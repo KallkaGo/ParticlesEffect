@@ -1,8 +1,8 @@
 import * as THREE from 'three'
-import { useFrame } from '@react-three/fiber'
+import { mergeBufferGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils'
 import { OrbitControls, useGLTF } from '@react-three/drei'
 import Particles from '../utils/particles'
-import { button, useControls } from 'leva'
+import { useControls } from 'leva'
 import { useEffect, useRef } from 'react'
 import VertexShader from './shader/vertex.glsl'
 import FragmentShader from './shader/fragment.glsl'
@@ -33,25 +33,44 @@ export default function Exprience() {
   const worm_Gear = model.scene.getObjectByName('Worm_Gear') as THREE.Mesh
 
 
-  const model2 = useGLTF('/model/dice2.glb')
+  const modeldice = useGLTF('/model/dice2.glb')
 
-  const model3 = useGLTF('/model/houzi.glb')
+  const modelMonkeyHead = useGLTF('/model/houzi.glb')
 
- 
-
-  const monkey = model3.scene.getObjectByName('猴头') as THREE.Mesh
+  const model4 = useGLTF('/model/keqing.glb').scene.children[2].children
 
 
 
-  const dice = model2.scene.getObjectByName('frame') as THREE.Mesh
+  const mergeGeometry = (group: THREE.Mesh[]) => {
+    let geometryArray: THREE.BufferGeometry[] = []
+    group.map((mesh) => {
+      let matrixWorldGeometry = mesh.geometry.clone().applyMatrix4(mesh.matrixWorld)
+      geometryArray.push(matrixWorldGeometry)
+    })
+    const mergedGeometries = mergeBufferGeometries(geometryArray)
+
+    return mergedGeometries
+  }
+
+  const keqing = mergeGeometry(model4 as THREE.Mesh[])
+
+  const monkey = modelMonkeyHead.scene.getObjectByName('猴头') as THREE.Mesh
 
 
 
-  if (!wall || !people! || !honeyComb || !worm_Gear) {
+  const dice = modeldice.scene.getObjectByName('frame') as THREE.Mesh
+
+
+
+  if (!wall || !people! || !honeyComb || !worm_Gear || !keqing) {
     throw new Error('模型加载出错')
   }
 
   const list = [
+    {
+      geometry: keqing.scale(10, 10, 10),
+      color: [new THREE.Color('blue'), new THREE.Color('#55ffff')]
+    },
     {
       geometry: wall.geometry,
       color: [new THREE.Color('#55ff00'), new THREE.Color('#55ffff')]
